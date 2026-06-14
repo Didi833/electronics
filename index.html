@@ -143,7 +143,7 @@
   #goonBtn{border:0;border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:700;cursor:pointer;color:#fff;
     background:linear-gradient(135deg,#ff7eb6,#7c5cff);box-shadow:0 6px 20px rgba(124,92,255,.45)}
   #goonBtn:hover{filter:brightness(1.08)}
-  #goonPanel{position:absolute;right:0;bottom:50px;width:220px;background:var(--bg2);border:1px solid var(--line);
+  #goonPanel{position:absolute;right:0;bottom:50px;width:240px;background:var(--bg2);border:1px solid var(--line);
     border-radius:14px;box-shadow:var(--shadow);padding:12px;display:none}
   #goon.open #goonPanel{display:block}
   .goon-head{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);
@@ -151,7 +151,7 @@
   .goon-x{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:13px;line-height:1}
   .goon-x:hover{color:var(--bad)}
   .goon-art{text-align:center;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 6px}
-  .goon-art pre{display:inline-block;text-align:left;margin:0;font:14px/1.35 ui-monospace,Consolas,monospace;
+  .goon-art pre{display:inline-block;text-align:left;margin:0;font:12px/1.2 ui-monospace,Consolas,monospace;
     color:#ff9bc2;cursor:pointer;transition:transform .08s}
   .goon-art pre:active{transform:scale(.96)}
   .goon-cap{display:flex;justify-content:space-between;align-items:baseline;margin-top:9px}
@@ -578,7 +578,7 @@ $("#resetBtn").onclick=()=>{
   let idx = Math.floor(Math.random()*data.length);
   function show(){
     document.getElementById('goonPre').textContent = data[idx].a;
-    document.getElementById('goonName').textContent = data[idx].n;
+    document.getElementById('goonName').textContent = data[idx].n + (data[idx].d ? ' · ' + data[idx].d : '');
     document.getElementById('goonNum').textContent = (idx+1)+'/'+data.length;
   }
   function nextOne(){ let j; do{ j=Math.floor(Math.random()*data.length); }while(j===idx && data.length>1); idx=j; show(); }
