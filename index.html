@@ -128,9 +128,9 @@
   .mascot p{margin:5px 0 0;color:var(--muted);font-size:13px;line-height:1.55}
   .parking{margin-top:10px;font:13px ui-monospace,Consolas,monospace}
   .parking .plabel{color:#9aa7b4}
-  .parking .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));
-    gap:8px 2px;margin-top:8px;justify-items:center}
-  .parking .slot{color:#6f7d92;cursor:pointer;user-select:none;transition:color .1s}
+  .parking .slots{display:grid;grid-template-columns:repeat(8,1fr);
+    gap:9px 0;margin-top:8px}
+  .parking .slot{text-align:center;color:#6f7d92;cursor:pointer;user-select:none;transition:color .1s}
   .parking .slot .cur{display:inline-block;width:6px;text-align:center;color:transparent}
   .parking .slot:hover{color:var(--accent)}
   .parking .slot.claimed{color:var(--accent2)}
@@ -176,6 +176,30 @@ function attempts(id){ return progress[id]?.attempts ?? 0; }
 let view = { page:"home", lectureId:null, tab:"notes" };
 let quiz = null; // active quiz session
 let parked = new Set(); // Template-Chan "parking lot" — claimed cursor slots
+let lockSlot = null;     // slot whose click currently holds the pointer lock
+function releaseParked(){
+  if(lockSlot!=null){
+    parked.delete(lockSlot);
+    const elx = document.querySelector('.parking .slot[data-i="'+lockSlot+'"]');
+    if(elx) elx.classList.remove('claimed');
+    lockSlot = null;
+  }
+}
+// Click a slot → literally lock the mouse cursor in place (Pointer Lock) until the next click.
+function parkClick(e){
+  const s = e.target.closest('.slot'); if(!s) return;
+  const i = +s.dataset.i;
+  const canLock = !!document.body.requestPointerLock;
+  if(canLock){
+    if(document.pointerLockElement) return;          // already locked: a click is handled by the global release
+    parked.add(i); s.classList.add('claimed'); lockSlot = i;
+    try{ const p = document.body.requestPointerLock(); if(p && p.catch) p.catch(()=>releaseParked()); }
+    catch(_){ releaseParked(); }
+  } else {                                           // no Pointer Lock support → just toggle the marker
+    if(parked.has(i)){ parked.delete(i); s.classList.remove('claimed'); }
+    else { parked.add(i); s.classList.add('claimed'); }
+  }
+}
 
 /* ---------------- helpers ---------------- */
 const $ = (s,el=document)=>el.querySelector(s);
@@ -245,7 +269,7 @@ function renderHome(m){
   const mascot = el("div","mascot");
   const SLOTN = 40;
   const slots = Array.from({length:SLOTN}, (_,i)=>
-    `<span class="slot${parked.has(i)?' claimed':''}" data-i="${i}" title="Click to park your cursor">[<span class="cur">|</span>]</span>`
+    `<span class="slot${parked.has(i)?' claimed':''}" data-i="${i}" title="Click to park (locks your mouse in place — click again to free it)">[<span class="cur">|</span>]</span>`
   ).join('');
   mascot.innerHTML = `
     <img class="chan-img" src="template-chan.png" alt="Template-Chan" title="Template-Chan" />
@@ -255,12 +279,7 @@ function renderHome(m){
       <div class="parking"><span class="plabel">Parking lot for cursors:</span> <span class="slots">${slots}</span></div>
     </div>`;
   m.appendChild(mascot);
-  mascot.querySelector('.slots').addEventListener('click', (e)=>{
-    const s = e.target.closest('.slot'); if(!s) return;
-    const i = +s.dataset.i;
-    if(parked.has(i)){ parked.delete(i); s.classList.remove('claimed'); }
-    else { parked.add(i); s.classList.add('claimed'); }
-  });
+  mascot.querySelector('.slots').addEventListener('click', parkClick);
 
   const tile = (l,badge)=>{
     const bp = best(l.id);
@@ -511,6 +530,11 @@ document.addEventListener("keydown",e=>{
   } else if(k==="h" && !quiz.answered){ quiz.hintShown=true; render(); }
   else if(e.key==="Enter" && quiz.answered){ next(); }
 });
+
+/* ---------------- parking-lot pointer lock ---------------- */
+document.addEventListener("click", ()=>{ if(document.pointerLockElement) document.exitPointerLock(); });
+document.addEventListener("pointerlockchange", ()=>{ if(!document.pointerLockElement) releaseParked(); });
+document.addEventListener("pointerlockerror", ()=>{ releaseParked(); });
 
 /* ---------------- reset ---------------- */
 $("#resetBtn").onclick=()=>{
