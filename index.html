@@ -116,11 +116,15 @@
   .msg{font-size:18px;font-weight:600;margin-bottom:6px}
   .empty{color:var(--muted);text-align:center;padding:40px}
   .tag{font-size:11px;color:var(--muted);margin-left:6px}
-  .mascot{display:flex;gap:16px;align-items:center;background:linear-gradient(135deg,#241a33,#19202e);
-    border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin:4px 0 24px;box-shadow:var(--shadow)}
-  .mascot .chan{width:60px;height:60px;border-radius:16px;flex:none;display:grid;place-items:center;font-size:30px;
-    background:linear-gradient(135deg,#ff9bc2,#7c5cff);box-shadow:0 6px 18px rgba(124,92,255,.45)}
+  .mascot{display:flex;gap:20px;align-items:center;background:
+    radial-gradient(420px 200px at 12% 50%, rgba(124,92,255,.18), transparent 70%),
+    linear-gradient(135deg,#241a33,#19202e);
+    border:1px solid var(--line);border-radius:var(--radius);padding:14px 20px;margin:4px 0 24px;box-shadow:var(--shadow)}
+  .mascot .chan-img{width:130px;height:130px;flex:none;object-fit:contain;
+    filter:drop-shadow(0 4px 14px rgba(124,92,255,.35))}
+  .mascot .mascot-text{min-width:0}
   .mascot b{font-size:15px}
+  .mascot .senpai{margin:6px 0 0;font-style:italic;color:#d7b4ff;font-size:13.5px}
   .mascot p{margin:5px 0 0;color:var(--muted);font-size:13px;line-height:1.55}
   .tile.exam-tile{border-color:#3a2d4d;background:linear-gradient(180deg,#1b1726,#161b22)}
   .tile.exam-tile:hover{border-color:var(--accent2)}
@@ -229,10 +233,11 @@ function renderHome(m){
   // Template-Chan — the one inside joke kept from the previous students' exam template
   const mascot = el("div","mascot");
   mascot.innerHTML = `
-    <div class="chan" title="Template-Chan">📋</div>
-    <div>
+    <img class="chan-img" src="template-chan.png" alt="Template-Chan" title="Template-Chan" />
+    <div class="mascot-text">
       <b>Template-Chan</b> <span class="pill">past-paper mascot</span>
-      <p>“F-fill me with your data, senpai~” — the legendary exam template, handed down through the years and rescued from the previous students' meme-filled answer sheets. Two cleaned-up past papers are waiting in <b>Past Exams</b> below. 👇</p>
+      <p class="senpai">“F-fill me with your data, senpai~”</p>
+      <p>The legendary exam template, handed down through the years and rescued from the previous students' meme-filled answer sheets. Two cleaned-up past papers are waiting in <b>Past Exams</b> below. 👇</p>
     </div>`;
   m.appendChild(mascot);
 
