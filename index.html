@@ -198,7 +198,7 @@ function openLecture(id,tab){ view={page:"lecture",lectureId:id,tab:tab||"notes"
 
 /* ---------------- dashboard ---------------- */
 function renderHome(m){
-  const totalQ = LECTURES.reduce((s,l)=>s+l.quiz.length,0);
+  const totalQ = LECTURES.reduce((s,l)=>s+l.quiz.length+(l.calc?l.calc.length:0),0);
   const doneCount = LECTURES.filter(l=>best(l.id)!=null).length;
   m.appendChild(el("div","crumbs","Home"));
   m.appendChild(el("h2","page","Welcome back 👋"));
@@ -255,22 +255,36 @@ function renderLecture(m){
     });
     const row = el("div","row");
     const go = el("button","btn primary","Test yourself on this topic →");
-    go.onclick=()=>startQuiz(l.id);
+    go.onclick=()=>startQuiz(l.id,"concept");
     row.appendChild(go);
+    if((l.calc||[]).length){
+      const calcBtn = el("button","btn ghost","🧮 Numeric problems");
+      calcBtn.onclick=()=>startQuiz(l.id,"calc");
+      row.appendChild(calcBtn);
+    }
     m.appendChild(row);
   } else {
+    const nCalc = (l.calc||[]).length;
     const c = el("div","card");
     c.innerHTML = `<h3 style="margin-top:0">Ready to test yourself?</h3>
-      <p style="color:var(--muted)">${l.quiz.length} concept questions. You'll get an instant explanation after each answer, and a hint button if you're stuck.</p>`;
+      <p style="color:var(--muted)">${l.quiz.length} concept questions${nCalc?` and ${nCalc} numeric problems`:""}. You'll get an instant explanation after each answer, and a hint button if you're stuck.</p>`;
     const row = el("div","row");
-    const go = el("button","btn primary","Start quiz");
-    go.onclick=()=>startQuiz(l.id);
+    const go = el("button","btn primary","Concept quiz");
+    go.onclick=()=>startQuiz(l.id,"concept");
     row.appendChild(go);
-    if(best(l.id)!=null){
-      const info = el("div","",`<span class="pill">Best score: ${best(l.id)}% · ${attempts(l.id)} attempt(s)</span>`);
-      info.style.alignSelf="center"; row.appendChild(info);
+    if(nCalc){
+      const calcBtn = el("button","btn ghost","🧮 Numeric quiz");
+      calcBtn.onclick=()=>startQuiz(l.id,"calc");
+      row.appendChild(calcBtn);
+      const both = el("button","btn ghost","Mixed (both)");
+      both.onclick=()=>startQuiz(l.id,"both");
+      row.appendChild(both);
     }
     c.appendChild(row);
+    if(best(l.id)!=null){
+      const info = el("div","",`<div style="margin-top:14px"><span class="pill">Best score: ${best(l.id)}% · ${attempts(l.id)} attempt(s)</span></div>`);
+      c.appendChild(info);
+    }
     m.appendChild(c);
   }
 }
@@ -285,13 +299,20 @@ function buildSession(questions, title, lectureId){
   });
   return { title, lectureId, qs, i:0, correct:0, answered:false, picked:null, wrong:[] };
 }
-function startQuiz(lectureId){
+function startQuiz(lectureId, set){
+  set = set || "concept";
   const l = lectureById(lectureId);
-  quiz = buildSession(l.quiz, l.title, lectureId);
+  const calc = l.calc || [];
+  let qs, label;
+  if(set==="calc"){ qs = calc; label = l.title + " — numeric"; }
+  else if(set==="both"){ qs = l.quiz.concat(calc); label = l.title + " — mixed"; }
+  else { qs = l.quiz; label = l.title; }
+  if(!qs.length){ return; }
+  quiz = buildSession(qs, label, lectureId);
   view = {page:"quiz"}; window.scrollTo(0,0); render();
 }
 function startMixedExam(){
-  let pool=[]; LECTURES.forEach(l=> l.quiz.forEach(q=> pool.push(q)) );
+  let pool=[]; LECTURES.forEach(l=>{ l.quiz.forEach(q=> pool.push(q)); (l.calc||[]).forEach(q=> pool.push(q)); });
   const picked = shuffle(pool).slice(0,20);
   quiz = buildSession(picked, "Mixed Exam", "__exam__");
   view={page:"quiz"}; window.scrollTo(0,0); render();

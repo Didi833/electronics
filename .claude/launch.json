@@ -1,0 +1,15 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "static",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-Command",
+        "$port=8137; $root=(Resolve-Path '.').Path; $l=New-Object System.Net.HttpListener; $l.Prefixes.Add(\"http://localhost:$port/\"); $l.Start(); Write-Host \"serving $root on $port\"; while($l.IsListening){ try{ $c=$l.GetContext(); $p=[System.Uri]::UnescapeDataString($c.Request.Url.LocalPath).TrimStart('/'); if([string]::IsNullOrEmpty($p)){$p='index.html'}; $f=Join-Path $root $p; if(Test-Path $f -PathType Leaf){ $b=[System.IO.File]::ReadAllBytes($f); $e=[System.IO.Path]::GetExtension($f).ToLower(); if($e -eq '.html'){$c.Response.ContentType='text/html; charset=utf-8'} elseif($e -eq '.js'){$c.Response.ContentType='application/javascript; charset=utf-8'} elseif($e -eq '.css'){$c.Response.ContentType='text/css; charset=utf-8'} else{$c.Response.ContentType='application/octet-stream'}; $c.Response.OutputStream.Write($b,0,$b.Length) } else { $c.Response.StatusCode=404 }; $c.Response.Close() } catch { Write-Host \"err $_\" } }"
+      ],
+      "port": 8137
+    }
+  ]
+}
